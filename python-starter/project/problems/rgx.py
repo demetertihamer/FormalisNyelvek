@@ -2,8 +2,9 @@ import re
 from collections import Counter
 from project.problem import Problem
 
+# Pontosan a feladatleírásban megadott minta, ^ és $ nélkül[cite: 4]
 LOGCAT_PATTERN = re.compile(
-    r"^(([0-9-]+) ([0-9:.]+)) +([0-9]+) +([0-9]+) ([IDVEFAW]) (.+?):(?: (.+))?$"
+    r"(([0-9-]+) ([0-9:.]+)) +([0-9]+) +([0-9]+) ([IDVEFAW]) (.+?):(?: (.+))?"
 )
 
 
@@ -16,7 +17,7 @@ class RegexProblem(Problem):
         return args.rgx is not None
 
     def run(self, args):
-        with open(args.input, "r", encoding="utf-8", errors="replace") as f:
+        with open(args.input, "r", encoding="utf-8-sig", errors="replace") as f:
             lines = f.read().splitlines()
 
         if args.rgx == 1:
@@ -39,25 +40,25 @@ class RegexProblem(Problem):
     def task_1(self, lines: list[str]) -> list[str]:
         patterns = [
             # 1. az összes sort, amelyik 10. hónap 15-én jött létre[cite: 2]
-            re.compile(r"^10-15\b"),
+            re.compile(r"10-15 [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] "),
             # 2. az összes sort, amelyik 10. hónap 15-én 10 óra 18 perc és 51 másodperckor jött létre[cite: 2]
-            re.compile(r"^10-15 10:18:51\."),
+            re.compile(r"10-15 10:18:51\.[0-9]+ +[0-9]+ +[0-9]+ [IDVEFAW] "),
             # 3. az összes sort, amelyik 51 másodperckor jött létre (mindegy a perc)[cite: 2]
-            re.compile(r"^[0-9-]+ [0-9]{2}:[0-9]{2}:51\."),
+            re.compile(r"[0-9-]+ [0-9]{2}:[0-9]{2}:51\.[0-9]+ +[0-9]+ +[0-9]+ [IDVEFAW] "),
             # 4. az összes lowmemorykiller taget tartalmazó sor[cite: 2]
-            re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] lowmemorykiller:"),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] [^:]*lowmemorykiller[^:]*:"),
             # 5. az összes 10:18:51 kor keletkező 221-es process id-jú sort[cite: 2]
-            re.compile(r"^[0-9-]+ 10:18:51\.[0-9]+ +221 +[0-9]+ "),
+            re.compile(r"[0-9-]+ 10:18:51\.[0-9]+ +221 +[0-9]+ [IDVEFAW] "),
             # 6. az összes hibát tartalmazó sort (E)[cite: 3]
-            re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ E "),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ E "),
             # 7. az összes warningot (W) amit a PackageManager küld[cite: 3]
-            re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ W PackageManager:"),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ W [^:]*PackageManager[^:]*:"),
             # 8. az összes ExoPlayer-es debug (D) infót[cite: 3]
-            re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ D ExoPlayer:"),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ D [^:]*ExoPlayer[^:]*:"),
             # 9. az összes java állomány pozíciót tartalmazó hibát és warningot (EW .java:)[cite: 3]
-            re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [EW] .+?\.java:"),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [EW] .+\.java:"),
             # 10. az összes olyan sort, ami tartalmazza a Thread szót a message részben (nem a tagben)[cite: 3]
-            re.compile(r"^[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] .+?:\s.*?\bThread\b"),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [IDVEFAW] (?:(?!Thread)[^:])+:.*Thread"),
         ]
 
         return [str(sum(1 for line in lines if pat.search(line))) for pat in patterns]
@@ -68,7 +69,7 @@ class RegexProblem(Problem):
         in_error_block = False
 
         for line in lines:
-            match = LOGCAT_PATTERN.match(line)
+            match = LOGCAT_PATTERN.search(line)
             if match:
                 in_error_block = (match.group(6) == "E")
 
@@ -83,7 +84,7 @@ class RegexProblem(Problem):
         ordered_pids = []
 
         for line in lines:
-            match = LOGCAT_PATTERN.match(line)
+            match = LOGCAT_PATTERN.search(line)
             if match:
                 pid = match.group(4)
                 if pid not in seen_pids:
@@ -96,7 +97,7 @@ class RegexProblem(Problem):
         error_counts = Counter()
 
         for line in lines:
-            match = LOGCAT_PATTERN.match(line)
+            match = LOGCAT_PATTERN.search(line)
             if match and match.group(6) == "E":
                 error_counts[match.group(4)] += 1
 
@@ -110,7 +111,7 @@ class RegexProblem(Problem):
         main_thread_errors = 0
 
         for line in lines:
-            match = LOGCAT_PATTERN.match(line)
+            match = LOGCAT_PATTERN.search(line)
             if match and match.group(6) == "E":
                 if match.group(4) == match.group(5):
                     main_thread_errors += 1
