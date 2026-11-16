@@ -2,7 +2,7 @@ import re
 from collections import Counter
 from project.problem import Problem
 
-# Pontosan a feladatleírásban megadott minta, ^ és $ nélkül[cite: 4]
+# Pontosan a feladatleírásban megadott minta, ^ és $ nélkül
 LOGCAT_PATTERN = re.compile(
     r"(([0-9-]+) ([0-9:.]+)) +([0-9]+) +([0-9]+) ([IDVEFAW]) (.+?):(?: (.+))?"
 )
@@ -41,7 +41,7 @@ class RegexProblem(Problem):
         patterns = [
             # 1. az összes sort, amelyik 10. hónap 15-én jött létre
             re.compile(r"10-15 "),
-            # 2. az összes sort, amelyik 10. hónap 15-én 10 óra 18 perc és 51 másodperckor jött létre
+            # 2. az összes sort, amelyik 10. hónap 15-én 10 óra 18 perc és 51 másodperckor jött létre[cite: 2]
             re.compile(r"10-15 10:18:51\."),
             # 3. az összes sort, amelyik 51 másodperckor jött létre (mindegy a perc)
             re.compile(r"[0-9-]+ [0-9]{2}:[0-9]{2}:51\."),
@@ -54,7 +54,7 @@ class RegexProblem(Problem):
             # 7. az összes warningot (W) amit a PackageManager küld
             re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ W PackageManager\s*:"),
             # 8. az összes ExoPlayer-es debug (D) infót
-            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ D ExoPlayer\s*:"),
+            re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ D [^:]*ExoPlayer[^:]*:"),
             # 9. az összes java állomány pozíciót tartalmazó hibát és warningot (EW .java:)
             re.compile(r"[0-9-]+ [0-9:.]+ +[0-9]+ +[0-9]+ [EW] .*\.java:"),
             # 10. az összes olyan sort, ami tartalmazza a Thread szót a message részben (nem a tagben)
